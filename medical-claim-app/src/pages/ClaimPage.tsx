@@ -11,17 +11,10 @@ import {
     Box,
     CircularProgress,
     Button,
+    Chip,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-
-interface ClaimData {
-    claimNumber: string;
-    firstName: string;
-    lastName: string;
-    dateCreated: string;
-    formType: 'CMS1500' | 'UB04' | string;
-    // Add other common claim data fields here
-}
+import { Claim } from '../types/claims';
 
 interface ClaimPageProps {
     relatedObjectType?: string;
@@ -29,7 +22,7 @@ interface ClaimPageProps {
 }
 
 const ClaimPage: React.FC<ClaimPageProps> = ({ relatedObjectType, relatedObjectId }) => {
-    const [claims, setClaims] = useState<ClaimData[]>([]);
+    const [claims, setClaims] = useState<Claim[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
@@ -38,33 +31,117 @@ const ClaimPage: React.FC<ClaimPageProps> = ({ relatedObjectType, relatedObjectI
         setLoading(true);
         setError(null);
 
-        // Simulate fetching data (replace with your actual API call later)
+        // Simulate fetching data with our new types
         setTimeout(() => {
-            const hardcodedClaims: ClaimData[] = [
-                { claimNumber: 'HC001', firstName: 'Alice', lastName: 'Smith', dateCreated: '2025-03-25', formType: 'CMS1500' },
-                { claimNumber: 'UB022', firstName: 'Bob', lastName: 'Johnson', dateCreated: '2025-03-20', formType: 'UB04' },
-                { claimNumber: 'HC002', firstName: 'Charlie', lastName: 'Brown', dateCreated: '2025-03-15', formType: 'CMS1500' },
-                { claimNumber: 'UB023', firstName: 'Diana', lastName: 'Garcia', dateCreated: '2025-03-10', formType: 'UB04' },
-                { claimNumber: 'HC003', firstName: 'Eve', lastName: 'Miller', dateCreated: '2025-03-05', formType: 'CMS1500' },
+            const hardcodedClaims: Claim[] = [
+                {
+                    id: '1',
+                    claimNumber: 'HC001',
+                    formType: 'CMS1500',
+                    status: 'submitted',
+                    dateCreated: '2025-03-25',
+                    dateModified: '2025-03-25',
+                    providerId: 'prov123',
+                    patientId: 'pat456',
+                    patientName: {
+                        firstName: 'Alice',
+                        lastName: 'Smith'
+                    },
+                    patientBirthDate: '1980-05-15',
+                    patientSex: 'F',
+                    patientAddress: {
+                        street: '123 Main St',
+                        city: 'Anytown',
+                        state: 'CA',
+                        zip: '90210'
+                    },
+                    diagnosisCodes: ['E11.65'],
+                    services: [{
+                        dateFrom: '2025-03-20',
+                        dateTo: '2025-03-20',
+                        placeOfService: '11',
+                        procedureCode: '99213',
+                        units: 1,
+                        diagnosisPointers: ['1'],
+                        charges: 125.00
+                    }],
+                    totalCharge: 125.00,
+                    billingProvider: {
+                        name: 'City Medical Group',
+                        address: {
+                            street: '456 Clinic Ave',
+                            city: 'Anytown',
+                            state: 'CA',
+                            zip: '90210'
+                        },
+                        npi: '1234567890'
+                    }
+                },
+                {
+                    id: '2',
+                    claimNumber: 'UB022',
+                    formType: 'UB04',
+                    status: 'processed',
+                    dateCreated: '2025-03-20',
+                    dateModified: '2025-03-22',
+                    providerId: 'prov123',
+                    patientId: 'pat789',
+                    patientControlNumber: 'PT789012',
+                    provider: {
+                        name: 'City Hospital',
+                        address: {
+                            street: '789 Hospital Way',
+                            city: 'Anytown',
+                            state: 'CA',
+                            zip: '90210'
+                        },
+                        phone: '555-123-4567',
+                        npi: '9876543210',
+                        taxId: '12-3456789'
+                    },
+                    patientAddress: {
+                        street: '456 Oak St',
+                        city: 'Anytown',
+                        state: 'CA',
+                        zip: '90210'
+                    },
+                    typeOfBill: '111',
+                    icdVersion: 'ICD-10',
+                    principalDiagnosis: 'J18.9',
+                    revenueCodes: [{
+                        code: '0250',
+                        description: 'Pharmacy',
+                        units: 1,
+                        totalCharge: 85.50
+                    }],
+                    payers: [{
+                        name: 'Medicare',
+                        releaseOfInfo: true,
+                        assignmentOfBenefits: true
+                    }]
+                }
             ];
 
-            // Filter based on relatedObjectType and relatedObjectId if provided
-            let filteredClaims = hardcodedClaims;
-            if (relatedObjectType && relatedObjectId) {
-                // Implement your filtering logic here if needed
-            }
-
-            setClaims(filteredClaims);
+            setClaims(hardcodedClaims);
             setLoading(false);
-        }, 1000); // Simulate a 1-second loading delay
-    }, [relatedObjectType, relatedObjectId, navigate]); // Added navigate to dependency array
+        }, 1000);
+    }, [relatedObjectType, relatedObjectId]);
 
     const handleCreateNewClaim = () => {
         navigate('/claims/new');
     };
 
-    const handleRowDoubleClick = (claimNumber: string) => {
-        navigate(`/claims/${claimNumber}`);
+    const handleRowDoubleClick = (claimId: string) => {
+        navigate(`/claims/${claimId}`);
+    };
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'submitted': return 'info';
+            case 'processed': return 'success';
+            case 'rejected': return 'error';
+            default: return 'default';
+        }
     };
 
     return (
@@ -86,41 +163,51 @@ const ClaimPage: React.FC<ClaimPageProps> = ({ relatedObjectType, relatedObjectI
                 <Typography color="error">{error}</Typography>
             ) : (
                 <TableContainer component={Paper}>
-                    <Table sx={{ minWidth: 650 }} aria-label="simple claim table">
+                    <Table sx={{ minWidth: 650 }} aria-label="claims table">
                         <TableHead>
                             <TableRow>
                                 <TableCell>Claim #</TableCell>
-                                <TableCell>First Name</TableCell>
-                                <TableCell>Last Name</TableCell>
-                                <TableCell>Date Created</TableCell>
+                                <TableCell>Patient Name</TableCell>
                                 <TableCell>Form Type</TableCell>
-                                {/* Add more common columns as needed */}
+                                <TableCell>Status</TableCell>
+                                <TableCell>Date Created</TableCell>
+                                <TableCell>Total Charge</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {claims.map((claim) => (
                                 <TableRow
-                                    key={claim.claimNumber}
+                                    key={claim.id}
                                     sx={{ '&:last-child td, &:last-child th': { border: 0 }, cursor: 'pointer' }}
-                                    onDoubleClick={() => handleRowDoubleClick(claim.claimNumber)}
+                                    onDoubleClick={() => handleRowDoubleClick(claim.id)}
+                                    hover
                                 >
-                                    <TableCell component="th" scope="row">
-                                        {claim.claimNumber}
+                                    <TableCell>{claim.claimNumber}</TableCell>
+                                    <TableCell>
+                                        {claim.formType === 'CMS1500' 
+                                            ? `${claim.patientName.lastName}, ${claim.patientName.firstName}`
+                                            : claim.formType === 'UB04'
+                                            ? `${claim.patientAddress.street}` // UB04 stores address differently
+                                            : 'N/A'}
                                     </TableCell>
-                                    <TableCell>{claim.firstName}</TableCell>
-                                    <TableCell>{claim.lastName}</TableCell>
-                                    <TableCell>{claim.dateCreated}</TableCell>
                                     <TableCell>{claim.formType}</TableCell>
-                                    {/* Add more data cells */}
+                                    <TableCell>
+                                        <Chip 
+                                            label={claim.status} 
+                                            color={getStatusColor(claim.status)} 
+                                            size="small" 
+                                        />
+                                    </TableCell>
+                                    <TableCell>{claim.dateCreated}</TableCell>
+                                    <TableCell>
+                                        {claim.formType === 'CMS1500' 
+                                            ? `$${claim.totalCharge.toFixed(2)}`
+                                            : claim.formType === 'UB04'
+                                            ? `$${claim.revenueCodes.reduce((sum, item) => sum + item.totalCharge, 0).toFixed(2)}`
+                                            : 'N/A'}
+                                    </TableCell>
                                 </TableRow>
                             ))}
-                            {claims.length === 0 && !loading && !error && (
-                                <TableRow>
-                                    <TableCell colSpan={5} align="center">
-                                        No claims found.
-                                    </TableCell>
-                                </TableRow>
-                            )}
                         </TableBody>
                     </Table>
                 </TableContainer>
