@@ -8,7 +8,7 @@ import OrganizationPage from './pages/OrganizationPage';
 import NotesPage from './pages/NotesPage';
 import DocumentPage from './pages/DocumentPage';
 import ClaimPage from './pages/ClaimPage';
-import ClaimDetailsPage from './pages/ClaimDetailsPage'; // Make sure this exists
+import ClaimDetailsPage from './components/claims/ClaimDetailsPage'; // Make sure this exists
 
 const App = () => {
     return (
