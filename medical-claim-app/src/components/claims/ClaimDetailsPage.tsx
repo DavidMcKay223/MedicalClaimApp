@@ -1,4 +1,3 @@
-// src/components/claims/ClaimDetailsPage.tsx
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -21,8 +20,8 @@ const ClaimDetailsPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
-  const [formData, setFormData] = useState<Claim>(id ? 
-    getMockClaim() : 
+  const [formData, setFormData] = useState<Claim>(id ?
+    getMockClaim() :
     getEmptyClaim()
   );
 
@@ -31,8 +30,8 @@ const ClaimDetailsPage: React.FC = () => {
     setFormData(prev => {
       // Ensure we're working with a CMS1500Claim
       const current = prev as CMS1500Claim;
-      const updated = typeof update === 'function' 
-        ? update(current) 
+      const updated = typeof update === 'function'
+        ? update(current)
         : update;
       return updated;
     });
@@ -64,7 +63,7 @@ const ClaimDetailsPage: React.FC = () => {
         </Box>
       </Box>
 
-      <ClaimHeader 
+      <ClaimHeader
         formData={formData}
         setFormData={setFormData}
       />
@@ -77,22 +76,22 @@ const ClaimDetailsPage: React.FC = () => {
 
       {formData.formType === 'CMS1500' && (
         <>
-          <PatientInfoSection 
+          <PatientInfoSection
             formData={formData as CMS1500Claim}
             setFormData={setCMS1500FormData}
           />
-          
-          <DiagnosisSection 
+
+          <DiagnosisSection
             formData={formData as CMS1500Claim}
             setFormData={setCMS1500FormData}
           />
-          
-          <ServicesSection 
+
+          <ServicesSection
             formData={formData as CMS1500Claim}
             setFormData={setCMS1500FormData}
           />
-          
-          <BillingProviderSection 
+
+          <BillingProviderSection
             formData={formData as CMS1500Claim}
             setFormData={setCMS1500FormData}
           />
